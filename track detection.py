@@ -13,8 +13,8 @@ tim_servo = Timer(2, freq=300)
 #set in1 and in2 to 1 and 0 for now, later need to edit:
 inA = Pin("P0", Pin.OUT_PP)
 inB = Pin("P1", Pin.OUT_PP)
-inA.high()
-inB.low()
+inA.low()
+inB.high()
 
 red_led = LED(1)
 green_led = LED(2)
@@ -53,6 +53,8 @@ clock = time.clock()
 # returned by "find_blobs" below. Change "pixels_threshold" and "area_threshold" if you change the
 # camera resolution. "merge=True" merges all overlapping blobs in the image.
 i = 0
+run_count = 0
+previous_center_x = 0
 while(True):
     clock.tick()
     img = sensor.snapshot()
@@ -74,12 +76,14 @@ while(True):
     #img.draw_keypoints([(blob.cx(), blob.cy(), int(math.degrees(blob.rotation())))], size=40, color=127)
     x_cord = [0,0]
     y_cord = [0,0]
-    found_finish_line = [False, False]
+    # found_finish_line = [False, False]
     ##pulse_width for motor control:
     #motor_pulse_percent = 0
     #servo_pulse_percent = 0
     center_x = 0
     found_line = False
+
+
 
     for r in ROIS:
         blobs = img.find_blobs([thresholds], roi=r[0:4],pixels_threshold= 100, area_threshold= 100, merge=True) # r[0:4] is roi tuple.
@@ -98,38 +102,43 @@ while(True):
             if r == ROIS[1]:
                 x_cord[1] = largest_blob.cx()
                 y_cord[1] = largest_blob.cy()
-            #find if finished line found:
-            if r == ROIS[2]:
-                if blobs:
-                    found_finish_line[0] = True
-            if r == ROIS[3]:
-                if blobs:
-                    found_finish_line[1] = True
+            # #find if finished line found:
+            # if r == ROIS[2]:
+            #     if blobs:
+            #         found_finish_line[0] = True
+            # if r == ROIS[3]:
+            #     if blobs:
+            #         found_finish_line[1] = True
             #find the car's position relative to the center line:
             if r == ROIS[4]:
                 if blobs:
                     found_line = True
                     center_x = largest_blob.cx()
                 else:
-                    found_line = False
-
+                     found_line = False
+    center_off = previous_center_x - 80
+    #load previous_Center_x for next term
+    previous_center_x = center_x
     #control algorithm:
+    pidx = center_x + center_off * 1
+    print("center_off" + str(center_off))
+    print("pidx" + str(pidx))
     if found_line:
-        if center_x <= 100 and center_x >= 60:
+        if pidx <= 100 and pidx >= 60:
             print('at center')
             green_led.on()
             blue_led.off()
             red_led.off()
             motor_pulse_percent = 80
             servo_pulse_percent = 45
-        if center_x < 60:
+        if pidx < 60:
             print('at right')
             red_led.on()
             green_led.off()
             blue_led.off()
             motor_pulse_percent = 50 #50 for normal value set to 0 for debug
             servo_pulse_percent = 57
-        elif center_x > 100:
+        elif pidx > 100:
             print('at left')
             blue_led.on()
             green_led.off()
@@ -137,20 +146,21 @@ while(True):
             motor_pulse_percent = 50
             servo_pulse_percent = 33
     else:
-        green_led.off()
-        red_led.off()
-        blue_led.off()
-        motor_pulse_percent = 20
-
-    if found_finish_line == [True, True]:
         green_led.on()
-        blue_led.on()
         red_led.on()
-        print('finish line detected')
-        motor_pulse_percent = 0
+        blue_led.off()
+        motor_pulse_percent = 50
+
+    #if found_finish_line == [True, True]:
+        #green_led.on()
+        #blue_led.on()
+        #red_led.on()
+        #print('finish line detected')
+        #motor_pulse_percent = 0
 
 
-
+    # for testing purpose, reduce the motor pulse percent so that the car runs slowly:
+    motor_pulse_percent = motor_pulse_percent * 0.3
     ch1 = tim_motor.channel(1, Timer.PWM, pin=Pin("P7"), pulse_width_percent=motor_pulse_percent)
     ch2 = tim_servo.channel(1, Timer.PWM, pin=Pin("P6"), pulse_width_percent=servo_pulse_percent)
 
@@ -177,6 +187,6 @@ while(True):
     #print("Turn Angle: %f" % deflection_angle)
     #print(center_x)
     print(clock.fps())
-    print(found_finish_line)
+    #print(found_finish_line)
     # Note: Your OpenMV Cam runs about half as fast while
 # connected to your computer. The FPS should increase once disconnected.
