@@ -53,8 +53,10 @@ clock = time.clock()
 # returned by "find_blobs" below. Change "pixels_threshold" and "area_threshold" if you change the
 # camera resolution. "merge=True" merges all overlapping blobs in the image.
 i = 0
+loop_count = 0
 run_count = 0
 previous_center_x = 0
+pp_center_x = 0
 while(True):
     clock.tick()
     img = sensor.snapshot()
@@ -116,39 +118,59 @@ while(True):
                     center_x = largest_blob.cx()
                 else:
                      found_line = False
-    center_off = previous_center_x - 80
+    center_off = previous_center_x - 80 #p controller
+    d_off = (center_x - pp_center_x) * clock.fps() / 2 #d controller
+    print('center_x: ' + str(center_x))
+    #print('d_off: ' + str(d_off))
+    if loop_count != 0:
+        pp_center_x = previous_x
     #load previous_Center_x for next term
     previous_center_x = center_x
     #control algorithm:
-    pidx = center_x + center_off * 1
-    print("center_off" + str(center_off))
-    print("pidx" + str(pidx))
+    pidx = center_x + center_off * 0.1 + d_off * 0
+    #print("center_off " + str(center_off))
+    #print("pidx " + str(pidx))
     if found_line:
-        if pidx <= 100 and pidx >= 60:
+        if pidx <= 95 and pidx >= 45:
             print('at center')
             green_led.on()
             blue_led.off()
             red_led.off()
             motor_pulse_percent = 80
             servo_pulse_percent = 45
-        if pidx < 60:
+        elif pidx < 45 and pidx >= 30:
+            print('near right')
+            servo_pulse_percent = 50
+            motor_pulse_percent = 60
+            red_led.on()
+            green_led.on()
+            blue_led.off()
+        elif pidx < 30:
             print('at right')
             red_led.on()
             green_led.off()
             blue_led.off()
             motor_pulse_percent = 50 #50 for normal value set to 0 for debug
-            servo_pulse_percent = 57
-        elif pidx > 100:
+            servo_pulse_percent = 55
+        elif pidx > 95 and pidx <= 110:
+            print('near left')
+            red_led.off()
+            blue_led.on()
+            green_led.on()
+            motor_pulse_percent = 60
+            servo_pulse_percent = 40
+        elif pidx > 110:
             print('at left')
             blue_led.on()
             green_led.off()
             red_led.off()
             motor_pulse_percent = 50
-            servo_pulse_percent = 33
+            servo_pulse_percent = 35
     else:
+        print('nothing detected')
         green_led.on()
         red_led.on()
-        blue_led.off()
+        blue_led.on()
         motor_pulse_percent = 50
 
     #if found_finish_line == [True, True]:
@@ -160,7 +182,7 @@ while(True):
 
 
     # for testing purpose, reduce the motor pulse percent so that the car runs slowly:
-    motor_pulse_percent = motor_pulse_percent * 0.3
+    motor_pulse_percent = motor_pulse_percent * 0.5
     ch1 = tim_motor.channel(1, Timer.PWM, pin=Pin("P7"), pulse_width_percent=motor_pulse_percent)
     ch2 = tim_servo.channel(1, Timer.PWM, pin=Pin("P6"), pulse_width_percent=servo_pulse_percent)
 
@@ -186,7 +208,7 @@ while(True):
 # the line farther away from the robot for a better prediction.
     #print("Turn Angle: %f" % deflection_angle)
     #print(center_x)
-    print(clock.fps())
+    #print(clock.fps())
     #print(found_finish_line)
     # Note: Your OpenMV Cam runs about half as fast while
 # connected to your computer. The FPS should increase once disconnected.
