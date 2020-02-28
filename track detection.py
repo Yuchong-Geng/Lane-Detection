@@ -28,11 +28,11 @@ thresholds = (175, 255)
 
 ROIS = [ # [ROI, weight]
         #(0, 100, 160, 10, 0.7), # You'll need to tweak the weights for your app
-        (0,  50, 160, 10, 0.7), # depending on how your robot is setup.
-        (0,   0, 160, 10, 0.7),
-        (50, 60, 15, 120, 0.7), # find finish line on the left
-        (110, 60, 15, 120, 0.7),
-        (0,  50, 160, 10, 0.7)
+        (0,  50, 160, 10, 0.7) # depending on how your robot is setup.
+        #(0,   0, 160, 10, 0.7),
+        #(50, 60, 15, 120, 0.7), # find finish line on the left
+        #(110, 60, 15, 120, 0.7),
+        #(0,  50, 160, 10, 0.7)
        ]
 weight_sum = 0
 
@@ -98,12 +98,12 @@ while(True):
             img.draw_cross(largest_blob.cx(),largest_blob.cy(),color = 0)
 
             #
-            if r == ROIS[0]:
-                x_cord[0] = largest_blob.cx()
-                y_cord[0] = largest_blob.cy()
-            if r == ROIS[1]:
-                x_cord[1] = largest_blob.cx()
-                y_cord[1] = largest_blob.cy()
+            #if r == ROIS[0]:
+                #x_cord[0] = largest_blob.cx()
+                #y_cord[0] = largest_blob.cy()
+            #if r == ROIS[1]:
+                #x_cord[1] = largest_blob.cx()
+                #y_cord[1] = largest_blob.cy()
             # #find if finished line found:
             # if r == ROIS[2]:
             #     if blobs:
@@ -112,7 +112,7 @@ while(True):
             #     if blobs:
             #         found_finish_line[1] = True
             #find the car's position relative to the center line:
-            if r == ROIS[4]:
+            if r == ROIS[0]:
                 if blobs:
                     found_line = True
                     center_x = largest_blob.cx()
@@ -127,45 +127,45 @@ while(True):
     #load previous_Center_x for next term
     previous_center_x = center_x
     #control algorithm:
-    pidx = center_x + center_off * 0.1 + d_off * 0
+    pidx = center_x + center_off * 0.14 + d_off * 0
     #print("center_off " + str(center_off))
     #print("pidx " + str(pidx))
     if found_line:
-        if pidx <= 95 and pidx >= 45:
+        if pidx <= 95 and pidx >= 55:
             print('at center')
             green_led.on()
             blue_led.off()
             red_led.off()
             motor_pulse_percent = 80
             servo_pulse_percent = 45
-        elif pidx < 45 and pidx >= 30:
+        elif pidx < 55 and pidx >= 40:
             print('near right')
-            servo_pulse_percent = 50
+            servo_pulse_percent = 49
             motor_pulse_percent = 60
             red_led.on()
             green_led.on()
             blue_led.off()
-        elif pidx < 30:
+        elif pidx < 40:
             print('at right')
             red_led.on()
             green_led.off()
             blue_led.off()
             motor_pulse_percent = 50 #50 for normal value set to 0 for debug
-            servo_pulse_percent = 55
+            servo_pulse_percent = 51
         elif pidx > 95 and pidx <= 110:
             print('near left')
             red_led.off()
             blue_led.on()
             green_led.on()
             motor_pulse_percent = 60
-            servo_pulse_percent = 40
+            servo_pulse_percent = 41
         elif pidx > 110:
             print('at left')
             blue_led.on()
             green_led.off()
             red_led.off()
             motor_pulse_percent = 50
-            servo_pulse_percent = 35
+            servo_pulse_percent = 39
     else:
         print('nothing detected')
         green_led.on()
@@ -182,7 +182,7 @@ while(True):
 
 
     # for testing purpose, reduce the motor pulse percent so that the car runs slowly:
-    motor_pulse_percent = motor_pulse_percent * 0.5
+    motor_pulse_percent = motor_pulse_percent * 0.6
     ch1 = tim_motor.channel(1, Timer.PWM, pin=Pin("P7"), pulse_width_percent=motor_pulse_percent)
     ch2 = tim_servo.channel(1, Timer.PWM, pin=Pin("P6"), pulse_width_percent=servo_pulse_percent)
 
