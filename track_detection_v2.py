@@ -7,6 +7,7 @@ from pyb import LED
 import time
 from pyb import Pin, Timer
 
+
 tim_motor = Timer(4, freq=2000) # Frequency in Hz
 tim_servo = Timer(2, freq=300)
 
@@ -129,7 +130,7 @@ while(True):
     #load previous_Center_x for next term
     previous_center_x = center_x
     #control algorithm:
-    pidx = center_x + center_off * 0.02 + d_off * 0.0005
+    pidx = center_x + center_off * 0 + d_off * 0.000
     #print("center_off " + str(center_off))
     print("pidx " + str(pidx))
     if found_line:
@@ -169,9 +170,14 @@ while(True):
             # motor_pulse_percent = 60
             # servo_pulse_percent = 41
         motor_pulse_percent = -0.02449 * pidx**2 + 3.67 * pidx - 57.75
-        servo_pulse_percent = -0.2286 * pidx + 62.144
+        servo_pulse_percent = -1.683800 * 10**-4 * pidx**3 + 3.788550* 10**-2 * pidx**2 - 2.8637185 * pidx +  117.70825948
+        print('servo_pulse_percent:' + str(servo_pulse_percent))
         if pidx >= 110 or pidx <= 40:
             motor_pulse_percent = 50
+        if servo_pulse_percent >= 55:
+            servo_pulse_percent = 55
+        if servo_pulse_percent <= 35:
+            servo_pulse_percent = 35
 
     else:
         print('nothing detected')
@@ -189,7 +195,7 @@ while(True):
 
 
     # for testing purpose, reduce the motor pulse percent so that the car runs slowly:
-    motor_pulse_percent = motor_pulse_percent * 0.6
+    motor_pulse_percent = motor_pulse_percent * 0.65
     ch1 = tim_motor.channel(1, Timer.PWM, pin=Pin("P7"), pulse_width_percent=motor_pulse_percent)
     ch2 = tim_servo.channel(1, Timer.PWM, pin=Pin("P6"), pulse_width_percent=servo_pulse_percent)
 
@@ -209,13 +215,3 @@ while(True):
 
 # Convert angle in radians to degrees.
     deflection_angle = math.degrees(deflection_angle)
-
-# Now you have an angle telling you how much to turn the robot by which
-# incorporates the part of the line nearest to the robot and parts of
-# the line farther away from the robot for a better prediction.
-    #print("Turn Angle: %f" % deflection_angle)
-    #print(center_x)
-    #print(clock.fps())
-    #print(found_finish_line)
-    # Note: Your OpenMV Cam runs about half as fast while
-# connected to your computer. The FPS should increase once disconnected.
