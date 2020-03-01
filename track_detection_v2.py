@@ -130,7 +130,7 @@ while(True):
     #load previous_Center_x for next term
     previous_center_x = center_x
     #control algorithm:
-    pidx = center_x + center_off * 0 + d_off * 0.000
+    pidx = center_x + center_off * 0 + d_off * 0.0001
     #print("center_off " + str(center_off))
     print("pidx " + str(pidx))
     if found_line:
@@ -170,7 +170,7 @@ while(True):
             # motor_pulse_percent = 60
             # servo_pulse_percent = 41
         motor_pulse_percent = -0.02449 * pidx**2 + 3.67 * pidx - 57.75
-        servo_pulse_percent = -1.683800 * 10**-4 * pidx**3 + 3.788550* 10**-2 * pidx**2 - 2.8637185 * pidx +  117.70825948
+        servo_pulse_percent =  -1.46250146 * 10**-4 * pidx**3 + 3.290628* 10**-2 * pidx**2 - 2.51738 * pidx +  110.4054054
         print('servo_pulse_percent:' + str(servo_pulse_percent))
         if pidx >= 110 or pidx <= 40:
             motor_pulse_percent = 50
