@@ -155,7 +155,7 @@ while(True):
             # motor_pulse_percent = 60
             # servo_pulse_percent = 41
         motor_pulse_percent = -3.2653061 * 10**-2 * pidx**2 +  4.897959183 * pidx - 103.673
-        servo_pulse_percent =   -6.2539086919* 10**-5 * pidx**3 +  1.4071294553* 10**-2 * pidx**2 - 1.155284552 * 10**0 * pidx +  7.88789868 * 10**1
+        servo_pulse_percent =   -5.6620209072* 10**-5 * pidx**3 +  1.2739547041209* 10**-2 * pidx**2 - 1.0554094078 * 10**0 * pidx +  7.6382404184 * 10**1
         if motor_pulse_percent <= 40:
             motor_pulse_percent = 40
         if servo_pulse_percent >= 55:
@@ -181,7 +181,7 @@ while(True):
 
 
     # for testing purpose, reduce the motor pulse percent so that the car runs slowly:
-    motor_pulse_percent = motor_pulse_percent * 0.7
+    motor_pulse_percent = motor_pulse_percent * 0.75
     ch1 = tim_motor.channel(1, Timer.PWM, pin=Pin("P7"), pulse_width_percent=motor_pulse_percent)
     ch2 = tim_servo.channel(1, Timer.PWM, pin=Pin("P6"), pulse_width_percent=servo_pulse_percent)
 
