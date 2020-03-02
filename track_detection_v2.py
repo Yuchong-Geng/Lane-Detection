@@ -16,6 +16,7 @@ inA = Pin("P0", Pin.OUT_PP)
 inB = Pin("P1", Pin.OUT_PP)
 inA.high()
 inB.low()
+found_finish_line = False
 
 red_led = LED(1)
 green_led = LED(2)
@@ -30,10 +31,10 @@ thresholds = (175, 255)
 ROIS = [ # [ROI, weight]
         #(0, 100, 160, 10, 0.7), # You'll need to tweak the weights for your app
         (0,  50, 160, 15, 0.7), # depending on how your robot is setup.
-        (0,  60, 160, 10, 0.7),
-        (0,   0, 160, 10, 0.7),
-        (50, 60, 15, 120, 0.7), # find finish line on the left
-        (110, 60, 15, 120, 0.7)
+        (40, 40, 25, 15, 0.7),
+        (80, 40, 25, 15, 0.7),
+        (35, 55, 25, 15, 0.7), # find finish line on the left
+        (85, 55, 25, 15, 0.7)
         #(0,  50, 160, 10, 0.7)
        ]
 weight_sum = 0
@@ -54,41 +55,20 @@ clock = time.clock()
 # Only blobs that with more pixels than "pixel_threshold" and more area than "area_threshold" are
 # returned by "find_blobs" below. Change "pixels_threshold" and "area_threshold" if you change the
 # camera resolution. "merge=True" merges all overlapping blobs in the image.
-i = 0
 loop_count = 0
 run_count = 0
 previous_center_x = 0
 pp_center_x = 0
 while(True):
+    loop_count = loop_count + 1
     clock.tick()
     img = sensor.snapshot()
     centroid_sum = 0
-    #i = i + 1
-    #if i == 40:
-        #red_led.toggle()
-        #i = 0;
-    #for blob in img.find_blobs([thresholds], pixels_threshold= 100, area_threshold= 100, merge=True):
-        #These values depend on the blob not being circular - otherwise they will be shaky.
-    #    if blob.elongation() > 0.5:
-    #       img.draw_edges(blob.min_corners(), color=0)
-    #       img.draw_line(blob.major_axis_line(), color=0)
-    #       img.draw_line(blob.minor_axis_line(), color=0)
-        #These values are stable all the time.
-    #img.draw_rectangle(blob.rect(), color=0)
-    #img.draw_cross(blob.cx(), blob.cy(), color=0)
-         #Note - the blob rotation is unique to 0-180 only.
-    #img.draw_keypoints([(blob.cx(), blob.cy(), int(math.degrees(blob.rotation())))], size=40, color=127)
     x_cord = [0,0]
     y_cord = [0,0]
-    # found_finish_line = [False, False]
-    ##pulse_width for motor control:
-    #motor_pulse_percent = 0
-    #servo_pulse_percent = 0
     center_x = 0
     found_line = False
-    direction_blob_count = 0
-
-
+    finish_blob = 0
 
     for r in ROIS:
         blobs = img.find_blobs([thresholds], roi=r[0:4],pixels_threshold= 100, area_threshold= 100, merge=True) # r[0:4] is roi tuple.
@@ -96,28 +76,43 @@ while(True):
             # Find the blob with the most pixels.
             largest_blob = max(blobs, key=lambda b: b.pixels())
 
-            # Draw a rect around the blob.
+            ## Draw a rect around the blob.
             img.draw_rectangle(largest_blob.rect(),color=0)
             img.draw_cross(largest_blob.cx(),largest_blob.cy(),color = 0)
-
+            #img.draw_cross(60,50,color = 0)
+            #img.draw_cross(100,50,color = 0)
+            #img.draw_cross(55,70,color = 0)
+            #img.draw_cross(105,70,color = 0)
+            img.draw_rectangle(40, 40, 25, 15, color=10)
+            img.draw_rectangle(80, 40, 25, 15, color=10)
+            img.draw_rectangle(35, 55, 25, 15, color=10)
+            img.draw_rectangle(85, 55, 25, 15, color=10)
             if r == ROIS[0]:
                 if blobs:
                     center_x = largest_blob.cx()
                     found_line = True
                 else:
                     found_line = False
+            if r == ROIS[1]:
+                if blobs:
+                    print('upper left found')
+                    finish_blob = finish_blob + 1
+            if r == ROIS[2]:
+                if blobs:
+                    print('upper right found')
+                    finish_blob = finish_blob + 1
+            if r == ROIS[3]:
+                if blobs:
+                    print('lower left found')
+                    finish_blob = finish_blob + 1
+            if r == ROIS[4]:
+                if blobs:
+                    print('lower right found')
+                    finish_blob = finish_blob + 1
     center_off = previous_center_x - 80 #p controller
     d_off = (center_x - pp_center_x) * clock.fps() / 2 #d controller
-    print('center_x: ' + str(center_x))
-    #print('d_off: ' + str(d_off))
-    if loop_count != 0:
-        pp_center_x = previous_x
-    #load previous_Center_x for next term
-    previous_center_x = center_x
     #control algorithm:
     pidx = center_x + center_off * 0.0 + d_off * 0.000
-    #print("center_off " + str(center_off))
-    print("pidx " + str(pidx))
     if found_line:
         if pidx < 30:
             print('at right')
@@ -152,18 +147,16 @@ while(True):
             red_led.off()
             blue_led.on()
             green_led.on()
-            # motor_pulse_percent = 60
-            # servo_pulse_percent = 41
+
         motor_pulse_percent = -3.2653061 * 10**-2 * pidx**2 +  4.897959183 * pidx - 103.673
-        servo_pulse_percent =   -5.6620209072* 10**-5 * pidx**3 +  1.2739547041209* 10**-2 * pidx**2 - 1.0554094078 * 10**0 * pidx +  7.6382404184 * 10**1
+        servo_pulse_percent =   -5.38975072* 10**-5 * pidx**3 +   1.21269391* 10**-2 * pidx**2 - 1.00946653 * 10**0 * pidx +  7.523396855 * 10**1
         if motor_pulse_percent <= 40:
             motor_pulse_percent = 40
         if servo_pulse_percent >= 55:
             servo_pulse_percent = 55
         if servo_pulse_percent <= 35:
             servo_pulse_percent = 35
-        print('servo_pulse_percent:' + str(servo_pulse_percent))
-        print('motor_pulse_percent:' + str(motor_pulse_percent))
+
 
     else:
         print('nothing detected')
@@ -171,13 +164,21 @@ while(True):
         red_led.on()
         blue_led.on()
         motor_pulse_percent = 50
+    if finish_blob >= 3:
+        print('finish line found')
+        inA.low()
+        inB.low()
+        found_finish_line = True
+    if found_finish_line:
+        green_led.on()
+        red_led.on()
+        blue_led.on()
+        time.sleep(100)
+        green_led.off()
+        red_led.off()
+        blue_led.off()
+        time.sleep(100)
 
-    #if found_finish_line == [True, True]:
-        #green_led.on()
-        #blue_led.on()
-        #red_led.on()
-        #print('finish line detected')
-        #motor_pulse_percent = 0
 
 
     # for testing purpose, reduce the motor pulse percent so that the car runs slowly:
