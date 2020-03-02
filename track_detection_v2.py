@@ -71,7 +71,10 @@ while(True):
     finish_blob = 0
 
     for r in ROIS:
-        blobs = img.find_blobs([thresholds], roi=r[0:4],pixels_threshold= 100, area_threshold= 100, merge=True) # r[0:4] is roi tuple.
+        if r == ROIS[0]:
+            blobs = img.find_blobs([thresholds], roi=r[0:4],pixels_threshold= 100, area_threshold= 100, merge=True) # r[0:4] is roi tuple.
+        else:
+            blobs = img.find_blobs([thresholds], roi=r[0:4],pixels_threshold= 50, area_threshold= 50, merge=True) # r[0:4] is roi tuple.
         if blobs:
             # Find the blob with the most pixels.
             largest_blob = max(blobs, key=lambda b: b.pixels())
@@ -149,7 +152,7 @@ while(True):
             green_led.on()
 
         motor_pulse_percent = -3.2653061 * 10**-2 * pidx**2 +  4.897959183 * pidx - 103.673
-        servo_pulse_percent =   -5.38975072* 10**-5 * pidx**3 +   1.21269391* 10**-2 * pidx**2 - 1.00946653 * 10**0 * pidx +  7.523396855 * 10**1
+        servo_pulse_percent =   -5.13194500744* 10**-5 * pidx**3 +   1.1546876266753* 10**-2 * pidx**2 - 9.659644005513 * 10**-1 * pidx +  7.4146544041 * 10**1
         if motor_pulse_percent <= 40:
             motor_pulse_percent = 40
         if servo_pulse_percent >= 55:
@@ -164,11 +167,11 @@ while(True):
         red_led.on()
         blue_led.on()
         motor_pulse_percent = 50
-    if finish_blob >= 3:
-        print('finish line found')
-        inA.low()
-        inB.low()
-        found_finish_line = True
+    #if finish_blob >= 3:
+        #print('finish line found')
+        #inA.low()
+        #inB.low()
+        #found_finish_line = True
     if found_finish_line:
         green_led.on()
         red_led.on()
