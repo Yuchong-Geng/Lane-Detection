@@ -29,11 +29,11 @@ thresholds = (175, 255)
 # roi is x, y width, height, weight
 ROIS = [ # [ROI, weight]
         #(0, 100, 160, 10, 0.7), # You'll need to tweak the weights for your app
-        (0,  50, 160, 15, 0.7) # depending on how your robot is setup.
-        #(0,  60, 160, 10, 0.7)
-        #(0,   0, 160, 10, 0.7),
-        #(50, 60, 15, 120, 0.7), # find finish line on the left
-        #(110, 60, 15, 120, 0.7),
+        (0,  50, 160, 15, 0.7), # depending on how your robot is setup.
+        (0,  60, 160, 10, 0.7),
+        (0,   0, 160, 10, 0.7),
+        (50, 60, 15, 120, 0.7), # find finish line on the left
+        (110, 60, 15, 120, 0.7)
         #(0,  50, 160, 10, 0.7)
        ]
 weight_sum = 0
@@ -100,21 +100,6 @@ while(True):
             img.draw_rectangle(largest_blob.rect(),color=0)
             img.draw_cross(largest_blob.cx(),largest_blob.cy(),color = 0)
 
-            #
-            #if r == ROIS[0]:
-                #x_cord[0] = largest_blob.cx()
-                #y_cord[0] = largest_blob.cy()
-            #if r == ROIS[1]:
-                #x_cord[1] = largest_blob.cx()
-                #y_cord[1] = largest_blob.cy()
-            # #find if finished line found:
-            # if r == ROIS[2]:
-            #     if blobs:
-            #         found_finish_line[0] = True
-            # if r == ROIS[3]:
-            #     if blobs:
-            #         found_finish_line[1] = True
-            #find the car's position relative to the center line:
             if r == ROIS[0]:
                 if blobs:
                     center_x = largest_blob.cx()
@@ -169,15 +154,16 @@ while(True):
             green_led.on()
             # motor_pulse_percent = 60
             # servo_pulse_percent = 41
-        motor_pulse_percent = -0.02449 * pidx**2 + 3.67 * pidx - 57.75
-        servo_pulse_percent =   -1.0504201* 10**-4 * pidx**3 +  2.363445* 10**-2 * pidx**2 - 1.8724789 * pidx + 96.806722
-        print('servo_pulse_percent:' + str(servo_pulse_percent))
-        if pidx >= 110 or pidx <= 40:
-            motor_pulse_percent = 50
+        motor_pulse_percent = -3.2653061 * 10**-2 * pidx**2 +  4.897959183 * pidx - 103.673
+        servo_pulse_percent =   -6.2539086919* 10**-5 * pidx**3 +  1.4071294553* 10**-2 * pidx**2 - 1.155284552 * 10**0 * pidx +  7.88789868 * 10**1
+        if motor_pulse_percent <= 40:
+            motor_pulse_percent = 40
         if servo_pulse_percent >= 55:
             servo_pulse_percent = 55
         if servo_pulse_percent <= 35:
             servo_pulse_percent = 35
+        print('servo_pulse_percent:' + str(servo_pulse_percent))
+        print('motor_pulse_percent:' + str(motor_pulse_percent))
 
     else:
         print('nothing detected')
@@ -195,7 +181,7 @@ while(True):
 
 
     # for testing purpose, reduce the motor pulse percent so that the car runs slowly:
-    motor_pulse_percent = motor_pulse_percent * 0.6
+    motor_pulse_percent = motor_pulse_percent * 0.7
     ch1 = tim_motor.channel(1, Timer.PWM, pin=Pin("P7"), pulse_width_percent=motor_pulse_percent)
     ch2 = tim_servo.channel(1, Timer.PWM, pin=Pin("P6"), pulse_width_percent=servo_pulse_percent)
 
