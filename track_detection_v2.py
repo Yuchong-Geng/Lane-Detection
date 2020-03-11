@@ -123,7 +123,7 @@ while(True):
             blue_led.off()
             if state == 'not braking':
                 start_brake_index = loop_count
-                end_brake_index = start_brake_index + 7
+                end_brake_index = start_brake_index + 8
                 state = 'braking'
         elif pidx > 116.31:
             print('at left')
@@ -132,7 +132,7 @@ while(True):
             red_led.off()
             if state == 'not braking':
                 start_brake_index = loop_count
-                end_brake_index = start_brake_index + 7
+                end_brake_index = start_brake_index + 8
                 state = 'braking'
         elif pidx <= 95 and pidx >= 55:
             print('at center')
