@@ -111,6 +111,7 @@ while(True):
                 if blobs:
                     print('right found')
                     finish_blob = finish_blob + 1
+    print('center _x: ' + str(center_x))
     center_off = previous_center_x - 80 #p controller
     d_off = (center_x - pp_center_x) * clock.fps() / 2 #d controller
     #control algorithm:
@@ -154,7 +155,7 @@ while(True):
             state = 'not braking'
 
         motor_pulse_percent = -7.22222222 * 10**-2 * pidx**2 +  1.08333333 * 10 * pidx - 3.11249999 * 10**2
-        servo_pulse_percent =   -8.4379648* 10**-5 * pidx**3 +   1.898542090* 10**-2 * pidx**2 - 1.473569049* 10**0 * pidx +    8.432235029* 10**1
+        servo_pulse_percent =   -8.4379648* 10**-5 * pidx**3 +   2.025111562* 10**-2 * pidx**2 - 1.6697517315* 10**0 * pidx +    9.2175378* 10**1
         if motor_pulse_percent <= 40:
             motor_pulse_percent = 40
         if servo_pulse_percent >= 55:
