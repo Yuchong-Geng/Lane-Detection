@@ -56,10 +56,11 @@ loop_count = 0
 run_count = 0
 previous_center_x = 0
 pp_center_x = 0
-speed_index = 0.70
+speed_index = 0.80
 start_brake_index = 0
 end_brake_index = 0
 state = 'not braking'
+found_line = False
 while(True):
     loop_count = loop_count + 1
     clock.tick()
@@ -68,7 +69,6 @@ while(True):
     x_cord = [0,0]
     y_cord = [0,0]
     center_x = 0
-    found_line = False
     far_finish_found = False
     finish_blob = 0
     far_finish = 0
@@ -155,7 +155,7 @@ while(True):
             state = 'not braking'
 
         motor_pulse_percent = -7.22222222 * 10**-2 * pidx**2 +  1.08333333 * 10 * pidx - 3.11249999 * 10**2
-        servo_pulse_percent =   -8.4379648* 10**-5 * pidx**3 +   2.025111562* 10**-2 * pidx**2 - 1.6697517315* 10**0 * pidx +    9.2175378* 10**1
+        servo_pulse_percent =   -8.4379648* 10**-5 * pidx**3 +   2.15168103* 10**-2 * pidx**2 - 1.87859136* 10**0 * pidx + 1.0104096251* 10**2
         if motor_pulse_percent <= 40:
             motor_pulse_percent = 40
         if servo_pulse_percent >= 55:
@@ -183,24 +183,27 @@ while(True):
         #inA.low()
         #inB.low()
         #found_finish_line = True
-    if found_finish_line:
-        green_led.on()
-        red_led.on()
-        blue_led.on()
-        time.sleep(100)
-        green_led.off()
-        red_led.off()
-        blue_led.off()
-        time.sleep(100)
+        #state = 'finish line'
+    #if found_finish_line:
+        #green_led.on()
+        #red_led.on()
+        #blue_led.on()
+        #time.sleep(100)
+        #green_led.off()
+        #red_led.off()
+        #blue_led.off()
+        #time.sleep(100)
 
 
 
     # for testing purpose, reduce the motor pulse percent so that the car runs slowly:
     motor_pulse_percent = motor_pulse_percent * speed_index
+    #if found_finish_line:
+        #motor_pulse_percent = 0
     ch1 = tim_motor.channel(1, Timer.PWM, pin=Pin("P7"), pulse_width_percent=motor_pulse_percent)
     ch2 = tim_servo.channel(1, Timer.PWM, pin=Pin("P6"), pulse_width_percent=servo_pulse_percent)
 
-
+    print(clock.fps())
     ##calculate the difference of two center points
     #dx = x_cord[0] - x_cord[1]
     #dy = y_cord[0] - y_cord[1]
