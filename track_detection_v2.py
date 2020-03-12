@@ -30,9 +30,7 @@ thresholds = (175, 255) #250 255 for ball room
 # roi is x, y width, height, weight
 ROIS = [ # [ROI, weight]
         #(0, 100, 160, 10, 0.7), # You'll need to tweak the weights for your app
-        (0,  50, 160, 15, 0.7), # depending on how your robot is setup.
-        (50, 40, 15, 30, 0.7),
-        (95, 40, 15, 30, 0.7)
+        (0,  85, 160, 15, 0.7) # depending on how your robot is setup
        ]
 weight_sum = 0
 
@@ -56,7 +54,7 @@ loop_count = 0
 run_count = 0
 previous_center_x = 0
 pp_center_x = 0
-speed_index = 0.80
+speed_index = 0.65
 start_brake_index = 0
 end_brake_index = 0
 state = 'not braking'
@@ -76,23 +74,19 @@ while(True):
     for r in ROIS:
         if r == ROIS[0]:
             blobs = img.find_blobs([thresholds], roi=r[0:4],pixels_threshold= 100, area_threshold= 100, merge=True) # r[0:4] is roi tuple.
-        #elif r == ROIS[5] or r == ROIS[6]:
-            #blobs = img.find_blobs([thresholds], roi=r[0:4],pixels_threshold= 10, area_threshold= 10, merge=True) # r[0:4] is roi tuple.
-        else:
-            blobs = img.find_blobs([thresholds], roi=r[0:4],pixels_threshold= 130, area_threshold= 130, merge=True) # r[0:4] is roi tuple.
         if blobs:
             # Find the blob with the most pixels.
             largest_blob = max(blobs, key=lambda b: b.pixels())
 
             ## Draw a rect around the blob.
-            img.draw_rectangle(largest_blob.rect(),color=0)
-            img.draw_cross(largest_blob.cx(),largest_blob.cy(),color = 0)
-            #img.draw_cross(60,50,color = 0)
-            #img.draw_cross(100,50,color = 0)
-            #img.draw_cross(55,70,color = 0)
-            #img.draw_cross(105,70,color = 0)
-            img.draw_rectangle(50, 40, 15, 30, color=10)
-            img.draw_rectangle(95, 40, 15, 30, color=10)
+            #img.draw_rectangle(largest_blob.rect(),color=0)
+            #img.draw_cross(largest_blob.cx(),largest_blob.cy(),color = 0)
+            ##img.draw_cross(60,50,color = 0)
+            ##img.draw_cross(100,50,color = 0)
+            ##img.draw_cross(55,70,color = 0)
+            ##img.draw_cross(105,70,color = 0)
+            #img.draw_rectangle(50, 40, 15, 30, color=10)
+            #img.draw_rectangle(95, 40, 15, 30, color=10)
             #img.draw_rectangle(35, 55, 25, 15, color=10)
             #img.draw_rectangle(85, 55, 25, 15, color=10)
             #img.draw_rectangle(80, 20, 10, 15, color=10)
@@ -103,21 +97,11 @@ while(True):
                     found_line = True
                 else:
                     found_line = False
-            if r == ROIS[1]:
-                if blobs:
-                    print('left found')
-                    finish_blob = finish_blob + 1
-            if r == ROIS[2]:
-                if blobs:
-                    print('right found')
-                    finish_blob = finish_blob + 1
+
     print('center _x: ' + str(center_x))
-    center_off = previous_center_x - 80 #p controller
-    d_off = (center_x - pp_center_x) * clock.fps() / 2 #d controller
-    #control algorithm:
-    pidx = center_x + center_off * 0.0 + d_off * 0.000
+    pidx = center_x
     if found_line:
-        if pidx < 33.69:
+        if pidx < 62.24:
             print('at right')
             red_led.on()
             green_led.off()
@@ -126,7 +110,7 @@ while(True):
                 start_brake_index = loop_count
                 end_brake_index = start_brake_index + 8
                 state = 'braking'
-        elif pidx > 116.31:
+        elif pidx > 97.76:
             print('at left')
             blue_led.on()
             green_led.off()
@@ -135,19 +119,19 @@ while(True):
                 start_brake_index = loop_count
                 end_brake_index = start_brake_index + 8
                 state = 'braking'
-        elif pidx <= 95 and pidx >= 55:
+        elif pidx <= 88.88 and pidx >= 71.12:
             print('at center')
             green_led.on()
             blue_led.off()
             red_led.off()
             state = 'not braking'
-        elif pidx < 55 and pidx >= 40:
+        elif pidx < 71.12 and pidx >= 62.24:
             print('near right')
             red_led.on()
             green_led.on()
             blue_led.off()
             state = 'not braking'
-        elif pidx > 95 and pidx <= 110:
+        elif pidx > 88.88 and pidx <= 97.76:
             print('near left')
             red_led.off()
             blue_led.on()
@@ -155,7 +139,7 @@ while(True):
             state = 'not braking'
 
         motor_pulse_percent = -7.22222222 * 10**-2 * pidx**2 +  1.08333333 * 10 * pidx - 3.11249999 * 10**2
-        servo_pulse_percent =   -8.4379648* 10**-5 * pidx**3 +   2.15168103* 10**-2 * pidx**2 - 1.87859136* 10**0 * pidx + 1.0104096251* 10**2
+        servo_pulse_percent =   -7.4777240* 10**-5 * pidx**3 +   1.794653* 10**-2 * pidx**2 - 1.4683833* 10**0 * pidx + 8.58987740* 10**1
         if motor_pulse_percent <= 40:
             motor_pulse_percent = 40
         if servo_pulse_percent >= 55:
@@ -177,22 +161,6 @@ while(True):
     else:
         inA.high()
         inB.low()
-    #finish line detection method:
-    #if finish_blob == 2:
-        #print('finish line found')
-        #inA.low()
-        #inB.low()
-        #found_finish_line = True
-        #state = 'finish line'
-    #if found_finish_line:
-        #green_led.on()
-        #red_led.on()
-        #blue_led.on()
-        #time.sleep(100)
-        #green_led.off()
-        #red_led.off()
-        #blue_led.off()
-        #time.sleep(100)
 
 
 
@@ -204,9 +172,4 @@ while(True):
     ch2 = tim_servo.channel(1, Timer.PWM, pin=Pin("P6"), pulse_width_percent=servo_pulse_percent)
 
     print(clock.fps())
-    ##calculate the difference of two center points
-    #dx = x_cord[0] - x_cord[1]
-    #dy = y_cord[0] - y_cord[1]
 
-
-    #deflection_angle = 0
